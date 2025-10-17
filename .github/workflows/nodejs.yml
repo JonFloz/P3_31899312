@@ -27,3 +27,17 @@ jobs:
 
     - name: Run tests
       run: npm test
+
+    - name: Run tests
+      run: npm test
+    - name: Deploy to Render
+      if: success() # Solo se ejecuta si las pruebas fueron exitosas
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER }} # Define tu API Key en GitHub Secrets
+        RENDER_SERVICE_ID: srv-d3p6igbuibrs73eqo4k0 # Reemplaza con el ID de tu servicio en Render
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys
+
