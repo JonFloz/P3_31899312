@@ -22,3 +22,13 @@ describe('Test API Endpoints', () => {
     });
 });
 ///// comit
+
+let server;
+
+beforeAll(() => {
+  server = require('../app'); 
+});
+
+afterAll(() => {
+  server.close();
+});
