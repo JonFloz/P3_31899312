@@ -1,9 +1,9 @@
-const Usuario = require('../models/usuario'); // Esto sigue siendo correcto
+const Usuario = require('../models/usuario'); 
 const { AppDataSource } = require('../config/databaseConfig');
 
+// Controlador para eliminar un usuario por id, require token
 const deleteUser = async (req, res) => {
     try {
-        // Validar que el ID esté presente y sea un número
         if (!req.params.id || isNaN(Number(req.params.id))) {
             return res.status(400).json({ status: 'fail', message: 'ID de usuario no válido' });
         }
@@ -12,12 +12,10 @@ const deleteUser = async (req, res) => {
         const userId = Number(req.params.id);
         const user = await userRepository.findOneBy({ id: userId });
 
-        // Comprobar si el usuario existe
         if (!user) {
             return res.status(404).json({ status: 'fail', message: 'Usuario no encontrado' });
         }
 
-        // Eliminar el usuario
         await userRepository.remove(user);
         res.json({ status: 'success', message: 'Usuario eliminado exitosamente', data: null });
     } catch (error) {

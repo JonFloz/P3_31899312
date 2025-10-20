@@ -20,7 +20,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '20.15.1' # Cambia esto si usas una versión diferente
+        node-version: '20.15.1' 
 
     - name: Install dependencies
       run: npm install
@@ -36,10 +36,10 @@ jobs:
       run: npm test
 
     - name: Deploy to Render
-      if: success() # Solo se ejecuta si las pruebas fueron exitosas
+      if: success() 
       env:
-        RENDER_API_KEY: ${{ secrets.RENDER }} # Define tu API Key en GitHub Secrets
-        RENDER_SERVICE_ID: srv-d3p6igbuibrs73eqo4k0 # Reemplaza con el ID de tu servicio en Render
+        RENDER_API_KEY: ${{ secrets.RENDER }} 
+        RENDER_SERVICE_ID: srv-d3p6igbuibrs73eqo4k0 
       run: |
         curl -X POST \
           -H "Authorization: Bearer $RENDER_API_KEY" \

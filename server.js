@@ -1,4 +1,4 @@
-const app = require('./app'); // Asegúrate de que la ruta sea correcta
+const app = require('./app'); 
 const PORT = 3000;
 
 app.listen(PORT, (err) => {

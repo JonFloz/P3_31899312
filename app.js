@@ -1,12 +1,10 @@
 // Importar dependencias
 const express = require('express');
-const bodyParser = require('body-parser');
-const { AppDataSource, iniciarServer } = require('./config/databaseConfig');
+const { iniciarServer } = require('./config/databaseConfig');
 const userRoutes = require('./routes/userRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 
-// Configuración de Swagger
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -20,18 +18,18 @@ const swaggerOptions = {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT', // Indica que está utilizando el formato JWT
+          bearerFormat: 'JWT',
         },
       },
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Servidor de desarrollo o producción'
-      },
-      {
-        url: 'https://p3-31899312.onrender.com',
-        description: 'Servidor en Render'
+        url: process.env.NODE_ENV === 'production' 
+          ? 'https://p3-31899312.onrender.com' 
+          : 'http://localhost:3000',
+        description: process.env.NODE_ENV === 'production' 
+          ? 'Servidor en Render' 
+          : 'Servidor de desarrollo',
       },
     ],
   },
@@ -39,23 +37,19 @@ const swaggerOptions = {
 };
 
 
+
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-// Inicializar el servidor
 if (process.env.NODE_ENV !== 'test') {
     iniciarServer()
 };
 
-// Crear una instancia de Express
 const app = express();
 
-// Middleware para parsear el cuerpo de las solicitudes en formato JSON
 app.use(express.json());
 
-// Usar Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Configurar rutas
 app.use('/', userRoutes);
 
 module.exports = app;

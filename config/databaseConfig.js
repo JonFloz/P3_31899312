@@ -5,7 +5,6 @@ require("dotenv").config();
 
 const isTest = process.env.NODE_ENV === 'test';
 
-// Crear un nuevo DataSource
 const AppDataSource = new DataSource({
   type: "sqlite",
   database: isTest ? `${process.env.TEST_DATABASE_PATH}` : `${process.env.DATABASE_PATH}` ,
@@ -13,7 +12,7 @@ const AppDataSource = new DataSource({
   synchronize: true,
   logging: false,
 });
-// Corregido: la sintaxis de la función debe ser `function iniciarServer()`
+
 const iniciarServer = async () => {
   try {
     await AppDataSource.initialize();
