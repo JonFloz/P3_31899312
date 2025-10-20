@@ -1,0 +1,4 @@
+node_modules
+# Keep environment variables out of version control
+.env
+mi_base_de_datos.sqlite

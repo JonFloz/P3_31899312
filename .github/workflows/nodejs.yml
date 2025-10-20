@@ -25,6 +25,13 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Create .env file
+      run: |
+        echo "DATABASE_PATH=./config/mi_base_de_datos.sqlite" >> .env
+        echo "JWT_SECRET=tu_clave_secreta_aqui" >> .env
+        echo "NODE_ENV=development" >> .env
+        echo "TEST_DATABASE_PATH=:memory:" >> .env
+
     - name: Run tests
       run: npm test
 

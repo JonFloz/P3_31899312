@@ -1,93 +1,61 @@
+// Importar dependencias
 const express = require('express');
-const swaggerJsDoc = require('swagger-jsdoc');
+const bodyParser = require('body-parser');
+const { AppDataSource, iniciarServer } = require('./config/databaseConfig');
+const userRoutes = require('./routes/userRoutes');
 const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
-const app = express();
-const port = 3000;
-
-app.use(express.json());
-
+// Configuración de Swagger
 const swaggerOptions = {
-    swaggerDefinition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'API Documentation',
-            version: '1.0.0',
-            description: 'Documentación de la API para el servidor Express',
-        },
-        servers: [
-            {
-                url: 'https://p3-31899312.onrender.com',
-            },
-        ],
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API de Ejemplo',
+      version: '1.0.0',
+      description: 'Documentación de la API',
     },
-    apis: ['./app.js'], // Ruta de los archivos que contienen la documentación JSDoc
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT', // Indica que está utilizando el formato JWT
+        },
+      },
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Servidor de desarrollo o producción'
+      },
+      {
+        url: 'https://P3_31899312onrender.com',
+        description: 'Servidor en Render'
+      },
+    ],
+  },
+  apis: ['./routes/*.js', './controllers/*.js'],
 };
 
+
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+// Inicializar el servidor
+if (process.env.NODE_ENV !== 'test') {
+    iniciarServer()
+};
+
+// Crear una instancia de Express
+const app = express();
+
+// Middleware para parsear el cuerpo de las solicitudes en formato JSON
+app.use(express.json());
+
+// Usar Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.get('/', (req, res) => {
-    res.send('¡Hola, mundo!');
-});
+// Configurar rutas
+app.use('/', userRoutes);
 
-/**
- * @swagger
- * /about:
- *   get:
- *     summary: Obtener información del usuario
- *     responses:
- *       200:
- *         description: Información del usuario en formato JSend
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     nombreCompleto:
- *                       type: string
- *                     cedula:
- *                       type: string
- *                     seccion:
- *                       type: string
- */
-app.get('/about', (req, res) => {
-    const response = {
-        status: "success",
-        data: {
-            nombreCompleto: "Edgar Alexander Herrera Milano",
-            cedula: "V31899312",
-            seccion: "1"
-        }
-    };
-    res.json(response);
-});
-
-/**
- * @swagger
- * /ping:
- *   get:
- *     summary: Verificar si el servidor está en funcionamiento
- *     responses:
- *       200:
- *         description: Respuesta OK
- */
-app.get('/ping', (req, res) => {
-    res.sendStatus(200);
-});
-
-const server = app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
-});
-
-module.exports = server;
-
-// prueba 
-
-let prueba = true
-
+module.exports = app;
