@@ -28,7 +28,7 @@ jobs:
     - name: Create .env file
       run: |
         echo "DATABASE_PATH=./config/mi_base_de_datos.sqlite" >> .env
-        echo "JWT_SECRET=tu_clave_secreta_aqui" >> .env
+        echo "JWT_SECRET=1234567890@@@@@1234567890!@#$%^&*()" >> .env
         echo "NODE_ENV=development" >> .env
         echo "TEST_DATABASE_PATH=:memory:" >> .env
 
