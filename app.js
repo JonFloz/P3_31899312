@@ -5,6 +5,7 @@ const userRoutes = require('./routes/userRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 
+// Config Swagger
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -24,18 +25,17 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://p3-31899312.onrender.com' 
-          : 'http://localhost:3000',
-        description: process.env.NODE_ENV === 'production' 
-          ? 'Servidor en Render' 
-          : 'Servidor de desarrollo',
+        url: 'http://localhost:3000',
+        description: 'Servidor de desarrollo o producción'
+      },
+      {
+        url: 'https://p3-31899312.onrender.com',
+        description: 'Servidor en Render'
       },
     ],
   },
   apis: ['./routes/*.js', './controllers/*.js'],
 };
-
 
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);

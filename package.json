@@ -8,7 +8,7 @@
   "main": "app.js",
   "scripts": {
     "test": "NODE_ENV=test jest",
-    "start": "NODE_ENV=development node server.js"
+    "start": " node server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
