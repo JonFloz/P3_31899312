@@ -90,6 +90,8 @@ const router = express.Router();
  *           type: string
  *           example: "one-piece-101"
 
+ */
+
 /**
  * @swagger
  * components:
@@ -277,106 +279,6 @@ const router = express.Router();
 // Rutas públicas para búsqueda y listado avanzado
 // Usar parámetro compuesto id-slug para permitir guiones en el slug
 router.get('/p/:composite', publicView);      // Vista pública con autocorrección de slug
-/**
- * @swagger
- * /v2/mangas:
- *   get:
- *     summary: Lista pública de mangas (paginación y filtros)
- *     tags: ["Public - Mangas"]
- *     parameters:
- *       - in: query
- *         name: category
- *         schema:
- *           type: string
- *         description: Filtrar por id o nombre de categoría
- *       - in: query
- *         name: tags
- *         schema:
- *           type: string
- *         description: Lista de ids de tags separados por comas
- *       - in: query
- *         name: price_min
- *         schema:
- *           type: number
- *         description: Precio mínimo
- *       - in: query
- *         name: price_max
- *         schema:
- *           type: number
- *         description: Precio máximo
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Término de búsqueda (name o series)
- *       - in: query
- *         name: author
- *         schema:
- *           type: string
- *         description: Filtrar por autor
- *       - in: query
- *         name: genre
- *         schema:
- *           type: string
- *         description: Filtrar por género
- *       - in: query
- *         name: series
- *         schema:
- *           type: string
- *         description: Filtrar por serie
- *       - in: query
- *         name: illustrator
- *         schema:
- *           type: string
- *         description: Filtrar por ilustrador
- *       - in: query
- *         name: tomoNumber
- *         schema:
- *           type: integer
- *         description: Número de tomo exacto
-		responses:
-			201:
-				description: Categoría creada
-				content:
-					application/json:
-						schema:
-							type: object
-							properties:
-								status:
-									type: string
-									example: success
-								data:
-									$ref: '#/components/schemas/Category'
-			400:
-				description: Petición inválida (ej. falta el campo requerido)
-				content:
-					application/json:
-						example:
-							status: fail
-							message: "Invalid request parameters"
-			409:
-				description: Conflicto - la categoría ya existe
-				content:
-					application/json:
-						example:
-							status: fail
-							message: "Category already exists"
-			500:
-				description: Error interno del servidor
-				content:
-					application/json:
-						example:
-							status: error
-							message: "Internal Server Error"
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
- *       500:
- *         description: Error interno del servidor
- */
 router.get('/mangas', listProducts);       // Public mangas listing (filters, pagination)
 /**
  * @swagger
@@ -432,6 +334,7 @@ router.get('/mangas', listProducts);       // Public mangas listing (filters, pa
  *             example:
  *               status: error
  *               message: "Internal Server Error"
+ */
 /**
  * @swagger
  * /v2/categories:
