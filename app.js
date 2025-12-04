@@ -2,7 +2,7 @@
 const express = require('express');
 const { iniciarServer } = require('./config/databaseConfig');
 const userRoutes = require('./routes/userRoutes');
-const userRoutesV2 = require('./routes/userRoutesV2');
+const productRoutes = require('./routes/productRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 
@@ -50,9 +50,9 @@ app.use(express.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Montar rutas: v1 en /api, v2 en /api/v2
+// Montar rutas: v1 en /, v2 en /v2
 app.use('/', userRoutes);
-app.use('/v2', userRoutesV2);
+app.use('/v2', productRoutes);
 
 // Manejador de errores (debe ir después de las rutas)
 const errorHandler = require('./middlewares/errorHandler');

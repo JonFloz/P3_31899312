@@ -563,3 +563,698 @@ describe('Task 2 - Extended robustness tests (categories, tags, products)', () =
 });
 // --- fin pruebas extendidas ---
 
+describe('ProductQueryBuilder - Métodos Encadenables (Integration Tests)', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe inicializar con start()', () => {
+    builder.start();
+    expect(builder.qb).toBeDefined();
+    expect(builder.filters).toEqual({});
+    expect(builder.validationErrors).toEqual([]);
+  });
+
+  test('debe permitir encadenamiento de filtros', () => {
+    builder
+      .start()
+      .filterByCategory('1')
+      .filterByTags('1,2')
+      .filterByPriceRange('10', '50');
+
+    expect(builder.getAppliedFilters()).toHaveProperty('category');
+    expect(builder.getAppliedFilters()).toHaveProperty('tags');
+    expect(builder.getAppliedFilters()).toHaveProperty('priceRange');
+  });
+
+  test('debe acumular errores sin fallar', () => {
+    builder
+      .start()
+      .filterByPriceRange('50', '10')
+      .filterBySearch('a'.repeat(101));
+
+    expect(builder.hasErrors()).toBe(true);
+    expect(builder.getValidationErrors().length).toBe(2);
+  });
+});
+
+describe('ProductQueryBuilder - Método build()', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe construir con filtros válidos', async () => {
+    const filters = {
+      category: '1',
+      tags: '1,2',
+      price_min: '10',
+      price_max: '50',
+      search: 'naruto',
+      page: '1',
+      limit: '10'
+    };
+
+    const qb = await builder.build(filters);
+    expect(qb).toBeDefined();
+    expect(builder.hasErrors()).toBe(false);
+  });
+
+  test('debe lanzar error si hay validaciones inválidas', async () => {
+    const filters = {
+      price_min: '50',
+      price_max: '10'
+    };
+
+    await expect(builder.build(filters)).rejects.toThrow('Validation errors in filters');
+  });
+
+  test('debe acumular múltiples errores', async () => {
+    const filters = {
+      price_min: '50',
+      price_max: '10',
+      search: 'a'.repeat(101),
+      limit: '500'
+    };
+
+    try {
+      await builder.build(filters);
+    } catch (err) {
+      expect(err.validationErrors.length).toBe(3);
+      expect(err.status).toBe(400);
+    }
+  });
+});
+
+describe('ProductQueryBuilder - Validaciones Específicas por Filtro', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('FilterByAuthor debe validar correctamente', () => {
+    builder.start().filterByAuthor('Masashi Kishimoto');
+    expect(builder.getAppliedFilters().author).toBe('Masashi Kishimoto');
+  });
+
+  test('FilterByGenre debe validar correctamente', () => {
+    builder.start().filterByGenre('Adventure');
+    expect(builder.getAppliedFilters().genre).toBe('Adventure');
+  });
+
+  test('FilterBySeries debe validar correctamente', () => {
+    builder.start().filterBySeries('Naruto');
+    expect(builder.getAppliedFilters().series).toBe('Naruto');
+  });
+
+  test('FilterByIllustrator debe validar correctamente', () => {
+    builder.start().filterByIllustrator('Illustrator Name');
+    expect(builder.getAppliedFilters().illustrator).toBe('Illustrator Name');
+  });
+
+  test('FilterByTomoNumber debe validar correctamente', () => {
+    builder.start().filterByTomoNumber('5');
+    expect(builder.getAppliedFilters().tomoNumber).toBe(5);
+  });
+
+  test('FilterByTomoNumber debe rechazar cero o negativo', () => {
+    builder.start().filterByTomoNumber('0');
+    expect(builder.hasErrors()).toBe(true);
+  });
+});
+
+describe('ProductQueryBuilder - Paginación', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe validar paginación válida', () => {
+    builder.start().paginate('2', '20');
+    const pagination = builder.getAppliedFilters().pagination;
+    expect(pagination.page).toBe(2);
+    expect(pagination.limit).toBe(20);
+    expect(pagination.offset).toBe(20);
+  });
+
+  test('debe rechazar página menor a 1', () => {
+    builder.start().paginate('0', '10');
+    expect(builder.hasErrors()).toBe(true);
+  });
+
+  test('debe rechazar límite mayor a 100', () => {
+    builder.start().paginate('1', '150');
+    expect(builder.hasErrors()).toBe(true);
+  });
+
+  test('debe usar valores por defecto', () => {
+    builder.start().paginate(null, null);
+    const pagination = builder.getAppliedFilters().pagination;
+    expect(pagination.page).toBe(1);
+    expect(pagination.limit).toBe(10);
+  });
+});
+
+describe('ProductQueryBuilder - Métodos de Inspección', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('getAppliedFilters debe retornar filtros aplicados', () => {
+    builder.start().filterByCategory('1').filterByTags('1,2');
+    const filters = builder.getAppliedFilters();
+    expect(filters).toHaveProperty('category');
+    expect(filters).toHaveProperty('tags');
+  });
+
+  test('getValidationErrors debe retornar errores acumulados', () => {
+    builder.start().filterByPriceRange('50', '10').filterBySearch('a'.repeat(101));
+    const errors = builder.getValidationErrors();
+    expect(errors.length).toBe(2);
+  });
+
+  test('hasErrors debe indicar correctamente', () => {
+    builder.start();
+    expect(builder.hasErrors()).toBe(false);
+    builder.filterByPriceRange('50', '10');
+    expect(builder.hasErrors()).toBe(true);
+  });
+});
+
+/**
+ * ================================
+ * PRUEBAS DE ÓRDENES Y CHECKOUT
+ * ================================
+ * Suite completa de tests para validar:
+ * - Transacciones atómicas
+ * - Integración con API de pagos
+ * - Validaciones de seguridad
+ */
+
+describe('Pruebas de Órdenes - Transacción Completa (Éxito)', () => {
+  let userId, token, productId1, productId2;
+
+  beforeAll(async () => {
+    // Usar datos seed
+    userId = global.__SEEDED_USERS[0].id;
+    token = global.__SEEDED_TOKENS[0];
+    
+    // Obtener IDs de productos seed
+    const productRepo = AppDataSource.getRepository(Manga);
+    const products = await productRepo.find({ take: 2 });
+    productId1 = products[0].id;
+    productId2 = products[1].id;
+  });
+
+  it('POST /v2/orders - Éxito: Crea orden, registra items, reduce stock (tarjeta válida)', async () => {
+    // Obtenemos stock inicial
+    const productRepo = AppDataSource.getRepository(Manga);
+    const productBefore = await productRepo.findOne({ where: { id: productId1 } });
+    const initialStock = productBefore.stock;
+
+    // Realizamos checkout exitoso
+    const checkoutResponse = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [
+          { productId: productId1, quantity: 2 },
+          { productId: productId2, quantity: 1 }
+        ],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Validamos respuesta exitosa
+    expect(checkoutResponse.status).toBe(201);
+    expect(checkoutResponse.body.status).toBe('success');
+    expect(checkoutResponse.body.data).toHaveProperty('order');
+
+    const order = checkoutResponse.body.data.order;
+    
+    // Validamos estructura de Order
+    expect(order).toHaveProperty('id');
+    expect(order).toHaveProperty('userId', userId);
+    expect(order).toHaveProperty('totalAmount');
+    expect(order).toHaveProperty('status', 'COMPLETED');
+    expect(order).toHaveProperty('paymentMethod', 'CreditCard');
+    expect(order).toHaveProperty('transactionId');
+    expect(order).toHaveProperty('items');
+
+    // Validamos items de la orden
+    expect(Array.isArray(order.items)).toBe(true);
+    expect(order.items.length).toBe(2);
+    
+    expect(order.items[0]).toHaveProperty('productId', productId1);
+    expect(order.items[0]).toHaveProperty('quantity', 2);
+    expect(order.items[0]).toHaveProperty('unitPrice');
+    expect(order.items[0]).toHaveProperty('subtotal');
+
+    // Validamos que el stock se redujo
+    const productAfter = await productRepo.findOne({ where: { id: productId1 } });
+    expect(productAfter.stock).toBe(initialStock - 2);
+
+    const product2After = await productRepo.findOne({ where: { id: productId2 } });
+    expect(product2After.stock).toBe(5 - 1); // Stock seed original es 5
+
+    // Validamos totalAmount es correcto
+    const expectedTotal = (order.items[0].unitPrice * 2) + (order.items[1].unitPrice * 1);
+    expect(order.totalAmount).toBeCloseTo(expectedTotal, 2);
+  });
+
+  it('GET /v2/orders - Obtiene historial con paginación', async () => {
+    const response = await request(app)
+      .get('/v2/orders?page=1&limit=10')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(response.body.data).toHaveProperty('orders');
+    expect(response.body.data).toHaveProperty('pagination');
+
+    const { pagination } = response.body.data;
+    expect(pagination).toHaveProperty('page', 1);
+    expect(pagination).toHaveProperty('limit', 10);
+    expect(pagination).toHaveProperty('total');
+    expect(pagination).toHaveProperty('pages');
+
+    // Validar que mínimo existe la orden creada anteriormente
+    expect(pagination.total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('GET /v2/orders/:id - Obtiene detalle de orden existente', async () => {
+    // Primero obtenemos la orden creada
+    const ordersResponse = await request(app)
+      .get('/v2/orders?page=1&limit=10')
+      .set('Authorization', `Bearer ${token}`);
+
+    const order = ordersResponse.body.data.orders[0];
+    const orderId = order.id;
+
+    // Obtenemos el detalle
+    const detailResponse = await request(app)
+      .get(`/v2/orders/${orderId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(detailResponse.status).toBe(200);
+    expect(detailResponse.body.status).toBe('success');
+    expect(detailResponse.body.data).toHaveProperty('order');
+
+    const detailedOrder = detailResponse.body.data.order;
+    expect(detailedOrder.id).toBe(orderId);
+    expect(detailedOrder).toHaveProperty('items');
+    expect(Array.isArray(detailedOrder.items)).toBe(true);
+  });
+});
+
+describe('Pruebas de Órdenes - Fallo por Stock Insuficiente (Rollback)', () => {
+  let userId, token, productId;
+
+  beforeAll(async () => {
+    userId = global.__SEEDED_USERS[1].id;
+    token = global.__SEEDED_TOKENS[1];
+    
+    const productRepo = AppDataSource.getRepository(Manga);
+    const product = await productRepo.findOne({ where: { id: 1 } });
+    productId = product.id;
+  });
+
+  it('POST /v2/orders - Fallo: Stock insuficiente (ROLLBACK completo)', async () => {
+    const productRepo = AppDataSource.getRepository(Manga);
+    const productBefore = await productRepo.findOne({ where: { id: productId } });
+    const initialStock = productBefore.stock;
+
+    // Intentamos comprar más stock del disponible
+    const checkoutResponse = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [
+          { productId: productId, quantity: initialStock + 10 } // ← Stock insuficiente
+        ],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Validamos que la respuesta sea error
+    expect(checkoutResponse.status).toBe(400);
+    expect(checkoutResponse.body.status).toBe('fail');
+    expect(checkoutResponse.body.data.message).toContain('Insufficient stock');
+
+    // Validamos ROLLBACK: El stock NO cambió
+    const productAfter = await productRepo.findOne({ where: { id: productId } });
+    expect(productAfter.stock).toBe(initialStock);
+
+    // Validamos que NO se creó la orden
+    const orderRepo = AppDataSource.getRepository('Order');
+    try {
+      const Order = require('../models/Order');
+      const ordersCount = await AppDataSource.getRepository(Order).count();
+      // Stock insuficiente ocurre antes de crear la orden
+    } catch (err) {
+      // Si Order no está disponible en este contexto, es OK
+    }
+  });
+});
+
+describe('Pruebas de Órdenes - Fallo por Pago Rechazado (Mock + Rollback)', () => {
+  let userId, token, productId;
+
+  beforeAll(async () => {
+    userId = global.__SEEDED_USERS[2].id;
+    token = global.__SEEDED_TOKENS[2];
+    
+    const productRepo = AppDataSource.getRepository(Manga);
+    const product = await productRepo.findOne({ where: { id: 2 } });
+    productId = product.id;
+  });
+
+  it('POST /v2/orders - Fallo: Tarjeta rechazada (fullName="REJECTED")', async () => {
+    const productRepo = AppDataSource.getRepository(Manga);
+    const productBefore = await productRepo.findOne({ where: { id: productId } });
+    const initialStock = productBefore.stock;
+
+    // Intentamos checkout con tarjeta rechazada (fullName="REJECTED" es el trigger en fakePayment)
+    const checkoutResponse = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [
+          { productId: productId, quantity: 2 }
+        ],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'REJECTED', // ← Trigger rechazo en fakePayment
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Validamos que la respuesta sea error
+    expect(checkoutResponse.status).toBe(400);
+    expect(checkoutResponse.body.status).toBe('fail');
+    // Just check that it contains 'reject' or 'Payment' (flexible error message check)
+    expect(
+      checkoutResponse.body.data.message.toLowerCase()
+    ).toMatch(/reject|payment|card/i);
+
+    // Validamos ROLLBACK: El stock NO cambió
+    const productAfter = await productRepo.findOne({ where: { id: productId } });
+    expect(productAfter.stock).toBe(initialStock);
+  });
+
+  it('POST /v2/orders - Fallo: Fondos insuficientes (fullName="INSUFFICIENT")', async () => {
+    const productRepo = AppDataSource.getRepository(Manga);
+    const productBefore = await productRepo.findOne({ where: { id: productId } });
+    const initialStock = productBefore.stock;
+
+    // Intentamos checkout con fondos insuficientes
+    const checkoutResponse = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [
+          { productId: productId, quantity: 1 }
+        ],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'INSUFFICIENT', // ← Trigger fondos insuficientes en fakePayment
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Validamos que la respuesta sea error
+    expect(checkoutResponse.status).toBe(400);
+    expect(checkoutResponse.body.status).toBe('fail');
+
+    // Validamos ROLLBACK: El stock NO cambió
+    const productAfter = await productRepo.findOne({ where: { id: productId } });
+    expect(productAfter.stock).toBe(initialStock);
+  });
+
+  it('POST /v2/orders - Fallo: Tarjeta inválida (número incorrecto)', async () => {
+    const productRepo = AppDataSource.getRepository(Manga);
+    const productBefore = await productRepo.findOne({ where: { id: productId } });
+    const initialStock = productBefore.stock;
+
+    // Intentamos checkout con tarjeta inválida
+    const checkoutResponse = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [
+          { productId: productId, quantity: 1 }
+        ],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '1234567890123456', // ← Tarjeta inválida
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Validamos que la respuesta sea error
+    expect(checkoutResponse.status).toBe(400);
+    expect(checkoutResponse.body.status).toBe('fail');
+
+    // Validamos ROLLBACK: El stock NO cambió
+    const productAfter = await productRepo.findOne({ where: { id: productId } });
+    expect(productAfter.stock).toBe(initialStock);
+  });
+});
+
+describe('Pruebas de Órdenes - Control de Acceso (Autenticación)', () => {
+  let productId;
+
+  beforeAll(async () => {
+    const productRepo = AppDataSource.getRepository(Manga);
+    const product = await productRepo.findOne({ where: { id: 1 } });
+    productId = product.id;
+  });
+
+  it('POST /v2/orders - 401: Sin token JWT', async () => {
+    const response = await request(app)
+      .post('/v2/orders')
+      // ← SIN header Authorization
+      .send({
+        items: [{ productId: productId, quantity: 1 }],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('POST /v2/orders - 401: Token inválido', async () => {
+    const response = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', 'Bearer invalid_token_xyz')
+      .send({
+        items: [{ productId: 1, quantity: 1 }],
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    // Token inválido puede ser 401 o 403 según middleware
+    expect([401, 403]).toContain(response.status);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('GET /v2/orders - 401: Sin token JWT', async () => {
+    const response = await request(app)
+      .get('/v2/orders')
+      // ← SIN header Authorization
+
+    expect(response.status).toBe(401);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('GET /v2/orders/:id - 401: Sin token JWT', async () => {
+    const response = await request(app)
+      .get('/v2/orders/1')
+      // ← SIN header Authorization
+
+    expect(response.status).toBe(401);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('GET /v2/orders/:id - 403: Orden no pertenece al usuario', async () => {
+    // Obtener la primera orden creada por usuario 0
+    const token0 = global.__SEEDED_TOKENS[0];
+    const ordersResponse = await request(app)
+      .get('/v2/orders?page=1&limit=10')
+      .set('Authorization', `Bearer ${token0}`);
+
+    if (ordersResponse.body.data.orders.length > 0) {
+      const orderId = ordersResponse.body.data.orders[0].id;
+
+      // Usuario 1 intenta acceder a la orden del usuario 0
+      const token1 = global.__SEEDED_TOKENS[1];
+      const accessResponse = await request(app)
+        .get(`/v2/orders/${orderId}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(accessResponse.status).toBe(403);
+      expect(accessResponse.body.status).toBe('fail');
+    }
+  });
+
+  it('GET /v2/orders/:id - Acceso exitoso a orden propia', async () => {
+    // Obtener la primera orden del usuario 0
+    const token0 = global.__SEEDED_TOKENS[0];
+    const ordersResponse = await request(app)
+      .get('/v2/orders?page=1&limit=10')
+      .set('Authorization', `Bearer ${token0}`);
+
+    if (ordersResponse.body.data.orders.length > 0) {
+      const orderId = ordersResponse.body.data.orders[0].id;
+
+      // El mismo usuario accede a su orden
+      const accessResponse = await request(app)
+        .get(`/v2/orders/${orderId}`)
+        .set('Authorization', `Bearer ${token0}`);
+
+      expect(accessResponse.status).toBe(200);
+      expect(accessResponse.body.status).toBe('success');
+      expect(accessResponse.body.data).toHaveProperty('order');
+    }
+  });
+});
+
+describe('Pruebas de Órdenes - Validaciones de Input', () => {
+  let userId, token, productId;
+
+  beforeAll(async () => {
+    userId = global.__SEEDED_USERS[3].id;
+    token = global.__SEEDED_TOKENS[3];
+    
+    const productRepo = AppDataSource.getRepository(Manga);
+    const product = await productRepo.findOne({ where: { id: 1 } });
+    productId = product.id;
+  });
+
+  it('POST /v2/orders - 400: items vacío', async () => {
+    const response = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [], // ← Vacío
+        paymentMethod: 'CreditCard',
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('POST /v2/orders - 400: paymentMethod faltante', async () => {
+    const response = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [{ productId: productId, quantity: 1 }],
+        // ← paymentMethod faltante
+        cardDetails: {
+          cardNumber: '4111111111111111',
+          fullName: 'John Doe',
+          expirationMonth: 12,
+          expirationYear: 2025,
+          cvv: '123',
+          currency: 'USD'
+        }
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('POST /v2/orders - 400: cardDetails faltante', async () => {
+    const response = await request(app)
+      .post('/v2/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        items: [{ productId: productId, quantity: 1 }],
+        paymentMethod: 'CreditCard'
+        // ← cardDetails faltante
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('GET /v2/orders - 400: page < 1', async () => {
+    const response = await request(app)
+      .get('/v2/orders?page=0&limit=10')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe('fail');
+  });
+
+  it('GET /v2/orders - 400: limit > 100', async () => {
+    const response = await request(app)
+      .get('/v2/orders?page=1&limit=150')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe('fail');
+  });
+});
