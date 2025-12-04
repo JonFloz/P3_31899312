@@ -160,6 +160,70 @@ const router = express.Router();
  *           items:
  *             type: integer
  *           description: Lista de IDs de tags a asociar (deben existir previamente)
+ *     Order:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           readOnly: true
+ *           example: 1
+ *         userId:
+ *           type: integer
+ *           example: 1
+ *         totalAmount:
+ *           type: number
+ *           format: decimal
+ *           example: 49.99
+ *         status:
+ *           type: string
+ *           enum: [PENDING, COMPLETED, CANCELED, PAYMENT_FAILED]
+ *           example: "COMPLETED"
+ *         paymentMethod:
+ *           type: string
+ *           example: "CreditCard"
+ *         transactionId:
+ *           type: string
+ *           example: "550e8400-e29b-41d4-a716-446655440000"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         items:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/OrderItem'
+ *     OrderItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           readOnly: true
+ *           example: 1
+ *         orderId:
+ *           type: integer
+ *           example: 1
+ *         productId:
+ *           type: integer
+ *           example: 1
+ *         quantity:
+ *           type: integer
+ *           example: 2
+ *         unitPrice:
+ *           type: number
+ *           format: decimal
+ *           example: 24.99
+ *         subtotal:
+ *           type: number
+ *           format: decimal
+ *           example: 49.98
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
  */
 /**
  * @swagger
@@ -998,7 +1062,7 @@ const orderController = new OrderController();
  *     summary: "Crear orden y procesar pago (Transaccional)"
  *     description: Crea una orden, procesa el pago via tarjeta de crédito y actualiza el stock. Operación ATÓMICA.
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -1102,7 +1166,7 @@ router.post('/orders', authenticateJWT, (req, res) => orderController.createOrde
  *     summary: "Obtener historial de órdenes del usuario"
  *     description: Retorna las órdenes del usuario autenticado con paginación
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: page
  *         in: query
@@ -1183,7 +1247,7 @@ router.get('/orders', authenticateJWT, (req, res) => orderController.getOrders(r
  *     summary: "Obtener detalle de una orden específica"
  *     description: Retorna los detalles de una orden (solo el propietario puede verla)
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
