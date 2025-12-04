@@ -984,4 +984,272 @@ router.get('/mangas/:id', authenticateJWT, getById);            // Obtener un ma
 router.put('/mangas/:id', authenticateJWT, require('../middlewares/validators').mangaUpdate, update);             // Actualizar un manga
 router.delete('/mangas/:id', authenticateJWT, deleteProduct);   // Eliminar un manga
 
+// ==================== ÓRDENES (CHECKOUT) ====================
+
+const OrderController = require('../controllers/Order');
+const orderController = new OrderController();
+
+/**
+ * @swagger
+ * /v2/orders:
+ *   post:
+ *     tags:
+ *       - Admin - Orders (Checkout)
+ *     summary: "Crear orden y procesar pago (Transaccional)"
+ *     description: Crea una orden, procesa el pago via tarjeta de crédito y actualiza el stock. Operación ATÓMICA.
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [items, paymentMethod, cardDetails]
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 description: Productos a comprar
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: integer
+ *                       example: 1
+ *                     quantity:
+ *                       type: integer
+ *                       example: 2
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [CreditCard]
+ *                 example: CreditCard
+ *               cardDetails:
+ *                 type: object
+ *                 required: [cardNumber, fullName, expirationMonth, expirationYear, cvv, currency]
+ *                 properties:
+ *                   cardNumber:
+ *                     type: string
+ *                     example: "4532015112830366"
+ *                   fullName:
+ *                     type: string
+ *                     example: "John Doe"
+ *                   expirationMonth:
+ *                     type: integer
+ *                     example: 12
+ *                   expirationYear:
+ *                     type: integer
+ *                     example: 2025
+ *                   cvv:
+ *                     type: string
+ *                     example: "123"
+ *                   currency:
+ *                     type: string
+ *                     enum: [USD, EUR, MXN]
+ *                     example: USD
+ *     responses:
+ *       201:
+ *         description: Orden creada exitosamente y pago procesado
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: success
+ *               data:
+ *                 id: 1
+ *                 userId: 1
+ *                 totalAmount: 49.99
+ *                 status: COMPLETED
+ *                 paymentMethod: CreditCard
+ *                 transactionId: "550e8400-e29b-41d4-a716-446655440000"
+ *                 createdAt: "2024-01-15T10:30:00Z"
+ *                 items:
+ *                   - id: 1
+ *                     orderId: 1
+ *                     productId: 1
+ *                     quantity: 2
+ *                     unitPrice: 24.99
+ *                     subtotal: 49.98
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *       400:
+ *         description: Error en validación o procesamiento de pago
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Insufficient stock for product 'Naruto Vol 1'. Available: 1, Requested: 2"
+ *       401:
+ *         description: No autorizado (token inválido o ausente)
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Invalid token"
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               message: "Internal Server Error"
+ */
+router.post('/orders', authenticateJWT, (req, res) => orderController.createOrder(req, res));
+
+/**
+ * @swagger
+ * /v2/orders:
+ *   get:
+ *     tags:
+ *       - Admin - Orders
+ *     summary: "Obtener historial de órdenes del usuario"
+ *     description: Retorna las órdenes del usuario autenticado con paginación
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           maximum: 100
+ *         description: Elementos por página
+ *     responses:
+ *       200:
+ *         description: Órdenes obtenidas exitosamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: success
+ *               data:
+ *                 orders:
+ *                   - id: 1
+ *                     userId: 1
+ *                     totalAmount: 49.99
+ *                     status: COMPLETED
+ *                     paymentMethod: CreditCard
+ *                     transactionId: "550e8400-e29b-41d4-a716-446655440000"
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *                     items:
+ *                       - id: 1
+ *                         productId: 1
+ *                         quantity: 2
+ *                         unitPrice: 24.99
+ *                         subtotal: 49.98
+ *                   - id: 2
+ *                     userId: 1
+ *                     totalAmount: 99.98
+ *                     status: PENDING
+ *                     paymentMethod: CreditCard
+ *                     transactionId: "660e8400-e29b-41d4-a716-446655440001"
+ *                     createdAt: "2024-01-14T15:45:00Z"
+ *                     items:
+ *                       - id: 2
+ *                         productId: 2
+ *                         quantity: 1
+ *                         unitPrice: 99.98
+ *                         subtotal: 99.98
+ *               pagination:
+ *                 page: 1
+ *                 limit: 10
+ *                 total: 2
+ *                 pages: 1
+ *       401:
+ *         description: No autorizado
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Invalid token"
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               message: "Internal Server Error"
+ */
+router.get('/orders', authenticateJWT, (req, res) => orderController.getOrders(req, res));
+
+/**
+ * @swagger
+ * /v2/orders/{id}:
+ *   get:
+ *     tags:
+ *       - Admin - Orders
+ *     summary: "Obtener detalle de una orden específica"
+ *     description: Retorna los detalles de una orden (solo el propietario puede verla)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Orden obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: success
+ *               data:
+ *                 id: 1
+ *                 userId: 1
+ *                 totalAmount: 49.99
+ *                 status: COMPLETED
+ *                 paymentMethod: CreditCard
+ *                 transactionId: "550e8400-e29b-41d4-a716-446655440000"
+ *                 createdAt: "2024-01-15T10:30:00Z"
+ *                 updatedAt: "2024-01-15T10:35:00Z"
+ *                 items:
+ *                   - id: 1
+ *                     orderId: 1
+ *                     productId: 1
+ *                     quantity: 2
+ *                     unitPrice: 24.99
+ *                     subtotal: 49.98
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *                     product:
+ *                       id: 1
+ *                       name: "Naruto Vol 1"
+ *                       author: "Masashi Kishimoto"
+ *                       price: 24.99
+ *                       stock: 15
+ *       401:
+ *         description: No autorizado
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Invalid token"
+ *       403:
+ *         description: Orden no pertenece al usuario
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Order does not belong to this user"
+ *       404:
+ *         description: Orden no encontrada
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Order not found"
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               message: "Internal Server Error"
+ */
+router.get('/orders/:id', authenticateJWT, (req, res) => orderController.getOrderDetail(req, res));
+
 module.exports = router;
