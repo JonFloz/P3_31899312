@@ -563,3 +563,192 @@ describe('Task 2 - Extended robustness tests (categories, tags, products)', () =
 });
 // --- fin pruebas extendidas ---
 
+describe('ProductQueryBuilder - Métodos Encadenables (Integration Tests)', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe inicializar con start()', () => {
+    builder.start();
+    expect(builder.qb).toBeDefined();
+    expect(builder.filters).toEqual({});
+    expect(builder.validationErrors).toEqual([]);
+  });
+
+  test('debe permitir encadenamiento de filtros', () => {
+    builder
+      .start()
+      .filterByCategory('1')
+      .filterByTags('1,2')
+      .filterByPriceRange('10', '50');
+
+    expect(builder.getAppliedFilters()).toHaveProperty('category');
+    expect(builder.getAppliedFilters()).toHaveProperty('tags');
+    expect(builder.getAppliedFilters()).toHaveProperty('priceRange');
+  });
+
+  test('debe acumular errores sin fallar', () => {
+    builder
+      .start()
+      .filterByPriceRange('50', '10')
+      .filterBySearch('a'.repeat(101));
+
+    expect(builder.hasErrors()).toBe(true);
+    expect(builder.getValidationErrors().length).toBe(2);
+  });
+});
+
+describe('ProductQueryBuilder - Método build()', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe construir con filtros válidos', async () => {
+    const filters = {
+      category: '1',
+      tags: '1,2',
+      price_min: '10',
+      price_max: '50',
+      search: 'naruto',
+      page: '1',
+      limit: '10'
+    };
+
+    const qb = await builder.build(filters);
+    expect(qb).toBeDefined();
+    expect(builder.hasErrors()).toBe(false);
+  });
+
+  test('debe lanzar error si hay validaciones inválidas', async () => {
+    const filters = {
+      price_min: '50',
+      price_max: '10'
+    };
+
+    await expect(builder.build(filters)).rejects.toThrow('Validation errors in filters');
+  });
+
+  test('debe acumular múltiples errores', async () => {
+    const filters = {
+      price_min: '50',
+      price_max: '10',
+      search: 'a'.repeat(101),
+      limit: '500'
+    };
+
+    try {
+      await builder.build(filters);
+    } catch (err) {
+      expect(err.validationErrors.length).toBe(3);
+      expect(err.status).toBe(400);
+    }
+  });
+});
+
+describe('ProductQueryBuilder - Validaciones Específicas por Filtro', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('FilterByAuthor debe validar correctamente', () => {
+    builder.start().filterByAuthor('Masashi Kishimoto');
+    expect(builder.getAppliedFilters().author).toBe('Masashi Kishimoto');
+  });
+
+  test('FilterByGenre debe validar correctamente', () => {
+    builder.start().filterByGenre('Adventure');
+    expect(builder.getAppliedFilters().genre).toBe('Adventure');
+  });
+
+  test('FilterBySeries debe validar correctamente', () => {
+    builder.start().filterBySeries('Naruto');
+    expect(builder.getAppliedFilters().series).toBe('Naruto');
+  });
+
+  test('FilterByIllustrator debe validar correctamente', () => {
+    builder.start().filterByIllustrator('Illustrator Name');
+    expect(builder.getAppliedFilters().illustrator).toBe('Illustrator Name');
+  });
+
+  test('FilterByTomoNumber debe validar correctamente', () => {
+    builder.start().filterByTomoNumber('5');
+    expect(builder.getAppliedFilters().tomoNumber).toBe(5);
+  });
+
+  test('FilterByTomoNumber debe rechazar cero o negativo', () => {
+    builder.start().filterByTomoNumber('0');
+    expect(builder.hasErrors()).toBe(true);
+  });
+});
+
+describe('ProductQueryBuilder - Paginación', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('debe validar paginación válida', () => {
+    builder.start().paginate('2', '20');
+    const pagination = builder.getAppliedFilters().pagination;
+    expect(pagination.page).toBe(2);
+    expect(pagination.limit).toBe(20);
+    expect(pagination.offset).toBe(20);
+  });
+
+  test('debe rechazar página menor a 1', () => {
+    builder.start().paginate('0', '10');
+    expect(builder.hasErrors()).toBe(true);
+  });
+
+  test('debe rechazar límite mayor a 100', () => {
+    builder.start().paginate('1', '150');
+    expect(builder.hasErrors()).toBe(true);
+  });
+
+  test('debe usar valores por defecto', () => {
+    builder.start().paginate(null, null);
+    const pagination = builder.getAppliedFilters().pagination;
+    expect(pagination.page).toBe(1);
+    expect(pagination.limit).toBe(10);
+  });
+});
+
+describe('ProductQueryBuilder - Métodos de Inspección', () => {
+  let builder;
+
+  beforeEach(() => {
+    const ProductQueryBuilder = require('../services/ProductQueryBuilder');
+    builder = new ProductQueryBuilder();
+  });
+
+  test('getAppliedFilters debe retornar filtros aplicados', () => {
+    builder.start().filterByCategory('1').filterByTags('1,2');
+    const filters = builder.getAppliedFilters();
+    expect(filters).toHaveProperty('category');
+    expect(filters).toHaveProperty('tags');
+  });
+
+  test('getValidationErrors debe retornar errores acumulados', () => {
+    builder.start().filterByPriceRange('50', '10').filterBySearch('a'.repeat(101));
+    const errors = builder.getValidationErrors();
+    expect(errors.length).toBe(2);
+  });
+
+  test('hasErrors debe indicar correctamente', () => {
+    builder.start();
+    expect(builder.hasErrors()).toBe(false);
+    builder.filterByPriceRange('50', '10');
+    expect(builder.hasErrors()).toBe(true);
+  });
+});

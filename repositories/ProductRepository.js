@@ -11,6 +11,9 @@ class ProductRepository {
     this.categoryRepo = AppDataSource.getRepository(Category);
   }
 
+  /**
+   * Encuentra un producto por ID con sus relaciones
+   */
   async findByIdWithRelations(id) {
     return this.repo.findOne({
       where: { id },
@@ -18,18 +21,30 @@ class ProductRepository {
     });
   }
 
+  /**
+   * Encuentra un producto por ID sin relaciones
+   */
   async findById(id) {
     return this.repo.findOneBy({ id });
   }
 
+  /**
+   * Encuentra un producto por slug con sus relaciones
+   */
   async findBySlug(slug) {
     return this.repo.findOne({ where: { slug }, relations: ['category', 'tags'] });
   }
 
+  /**
+   * Crea una nueva instancia de producto
+   */
   create(data) {
     return this.repo.create(data);
   }
 
+  /**
+   * Guarda un producto
+   */
   async save(entity) {
     return this.repo.save(entity);
   }
@@ -57,11 +72,17 @@ class ProductRepository {
     }
   }
 
+  /**
+   * Elimina un producto
+   */
   async remove(entity) {
     return this.repo.remove(entity);
   }
 
-  // Acepta un array de IDs numéricos
+  /**
+   * Encuentra tags por IDs numéricos
+   * Acepta un array de IDs numéricos
+   */
   async findTagsByIds(tagIds) {
     if (!Array.isArray(tagIds) || tagIds.length === 0) return [];
     if (typeof this.tagRepo.findByIds === 'function') {
@@ -70,15 +91,24 @@ class ProductRepository {
     return this.tagRepo.findBy({ id: In(tagIds) });
   }
 
+  /**
+   * Encuentra una categoría por ID
+   */
   async findCategoryById(id) {
     return this.categoryRepo.findOneBy({ id });
   }
 
+  /**
+   * Verifica si existe un slug
+   */
   async existsSlug(slug) {
     const count = await this.repo.count({ where: { slug } });
     return count > 0;
   }
 
+  /**
+   * Genera un slug único agregando sufijos si es necesario
+   */
   async generateUniqueSlug(baseSlug) {
     let slug = baseSlug;
     let suffix = 0;
@@ -87,6 +117,31 @@ class ProductRepository {
       slug = `${baseSlug}-${suffix}`;
     }
     return slug;
+  }
+
+  /**
+   * Ejecuta una búsqueda avanzada usando el QueryBuilder
+   * Retorna resultados paginados con metadatos
+   */
+  async findAdvanced(queryBuilder) {
+    const [items, total] = await queryBuilder.getManyAndCount();
+    return { items, total };
+  }
+
+  /**
+   * Obtiene todos los productos (sin filtros)
+   */
+  async findAll() {
+    return this.repo.find({
+      relations: ['category', 'tags'],
+    });
+  }
+
+  /**
+   * Cuenta el total de productos
+   */
+  async count() {
+    return this.repo.count();
   }
 }
 
