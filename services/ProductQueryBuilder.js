@@ -413,5 +413,6 @@ class ProductQueryBuilder {
   }
 }
 
+// exportar
 module.exports = ProductQueryBuilder;
 module.exports.FilterValidator = FilterValidator;
