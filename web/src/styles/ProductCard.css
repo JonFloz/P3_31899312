@@ -1,0 +1,223 @@
+/* ===================================
+   PRODUCT CARD - DISEÑO MINIMALISTA MANGA
+   =================================== */
+
+.product-card {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--color-accent-light);
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.product-image {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: var(--gradient-subtle);
+  position: relative;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition-normal);
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.08);
+}
+
+.product-badge {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: var(--color-black);
+  color: var(--color-white);
+  padding: 4px 10px;
+  border-radius: var(--border-radius-md);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.product-info {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-name {
+  font-size: 16px;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-black);
+  font-weight: 600;
+  line-height: 1.4;
+  font-family: var(--font-heading);
+}
+
+.product-author {
+  font-size: 12px;
+  color: var(--color-dark-gray);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-style: italic;
+}
+
+.product-category {
+  font-size: 11px;
+  color: var(--color-accent-dark);
+  margin: 0 0 var(--spacing-md) 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.product-description {
+  font-size: 13px;
+  color: var(--color-dark-gray);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-accent-light);
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-black);
+  font-family: var(--font-heading);
+}
+
+.product-stock {
+  font-size: 12px;
+}
+
+.product-stock .stock {
+  padding: 4px 8px;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.product-stock .stock.available {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.product-stock .stock.unavailable {
+  background: #FEE2E2;
+  color: #7F1D1D;
+  border: 1px solid #FECACA;
+}
+
+.product-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: auto;
+}
+
+.quantity-selector {
+  flex: 0.35;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-medium-gray);
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.quantity-selector:focus {
+  outline: none;
+  border-color: var(--color-black);
+  box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.1);
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background: var(--color-charcoal);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.add-to-cart-btn.added {
+  background: #059669;
+  border: 2px solid #059669;
+}
+
+.add-to-cart-btn.disabled {
+  background: var(--color-medium-gray);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .product-image {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card {
+    height: auto;
+  }
+
+  .product-image {
+    height: 150px;
+  }
+
+  .product-info {
+    padding: var(--spacing-md);
+  }
+
+  .product-actions {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .quantity-selector {
+    flex: 1;
+  }
+
+  .add-to-cart-btn {
+    flex: 1;
+  }
+}

@@ -1,0 +1,238 @@
+/* ===================================
+   ORDERS - HISTORIAL DE ÓRDENES MINIMALISTA
+   =================================== */
+
+.orders-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  min-height: 70vh;
+}
+
+.orders-header {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-accent-light);
+}
+
+.orders-header h1 {
+  color: var(--color-black);
+  font-size: 2rem;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-family: var(--font-heading);
+}
+
+.orders-subtitle {
+  color: var(--color-dark-gray);
+  font-size: 14px;
+  margin: 0;
+}
+
+.empty-orders {
+  background: var(--gradient-light);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-accent-light);
+  color: var(--color-dark-gray);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-lg);
+  display: block;
+}
+
+.empty-orders h2 {
+  font-size: 1.5rem;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-black);
+  font-family: var(--font-heading);
+}
+
+.empty-orders p {
+  font-size: 14px;
+  color: var(--color-dark-gray);
+  margin: 0;
+}
+
+.orders-container {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.order-card {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: var(--transition-normal);
+  border: 1px solid var(--color-accent-light);
+}
+
+.order-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.order-header {
+  background: var(--gradient-subtle);
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-accent-light);
+}
+
+.order-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex: 1;
+}
+
+.order-title h3 {
+  color: var(--color-black);
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-black);
+}
+
+.status-badge.completed {
+  background: #059669;
+}
+
+.status-badge.pending {
+  background: #D97706;
+}
+
+.status-badge.cancelled {
+  background: #DC2626;
+}
+
+.order-body {
+  padding: var(--spacing-lg);
+}
+
+.order-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 12px;
+  color: var(--color-dark-gray);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: var(--color-black);
+  font-weight: 600;
+}
+
+.order-items {
+  border-top: 1px solid var(--color-accent-light);
+  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.order-items h4 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: var(--color-black);
+  margin-bottom: var(--spacing-md);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.item-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-accent-light);
+  font-size: 13px;
+}
+
+.item-entry:last-child {
+  border-bottom: none;
+}
+
+.item-name {
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.item-qty {
+  color: var(--color-dark-gray);
+  margin: 0 var(--spacing-md);
+}
+
+.item-price {
+  color: var(--color-black);
+  font-weight: 700;
+  text-align: right;
+}
+
+.order-total {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) 0 0;
+  border-top: 2px solid var(--color-accent-light);
+  margin-top: var(--spacing-lg);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-black);
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding: var(--spacing-md);
+  }
+
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-info {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .status-badge {
+    margin-top: var(--spacing-md);
+  }
+}

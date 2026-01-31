@@ -1,0 +1,102 @@
+/* ===================================
+   FOOTER - DISEÑO MINIMALISTA MANGA
+   =================================== */
+
+.footer {
+  background: var(--gradient-dark);
+  color: var(--color-white);
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  margin-top: auto;
+  border-top: 2px solid var(--color-accent-dark);
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.footer-section h4 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-white);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding-bottom: var(--spacing-md);
+}
+
+.footer-section h4::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--color-accent-dark);
+}
+
+.footer-section p {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
+  color: var(--color-accent-light);
+  font-size: 14px;
+}
+
+.footer-section ul {
+  list-style: none;
+}
+
+.footer-section ul li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.footer-section ul li a {
+  color: var(--color-accent-light);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  font-size: 14px;
+  position: relative;
+}
+
+.footer-section ul li a::before {
+  content: '→';
+  margin-right: 8px;
+  opacity: 0;
+  transition: var(--transition-normal);
+}
+
+.footer-section ul li a:hover {
+  color: var(--color-white);
+}
+
+.footer-section ul li a:hover::before {
+  opacity: 1;
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--color-accent-dark);
+  padding-top: var(--spacing-lg);
+  text-align: center;
+  color: var(--color-accent-medium);
+  font-size: 13px;
+}
+
+.footer-bottom p {
+  margin-bottom: var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .footer-section h4 {
+    font-size: 0.9rem;
+  }
+}

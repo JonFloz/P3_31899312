@@ -1,0 +1,211 @@
+/* ===================================
+   HOME - DISEÑO MINIMALISTA MANGA
+   =================================== */
+
+.home {
+  width: 100%;
+  min-height: calc(100vh - 100px);
+}
+
+.hero {
+  background: var(--gradient-dark);
+  color: var(--color-white);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  border-bottom: 3px solid var(--color-accent-dark);
+  margin-bottom: var(--spacing-2xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-title {
+  color: var(--color-white);
+  font-size: 3.5rem;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  margin-bottom: var(--spacing-lg);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: whitesmoke;
+}
+
+.hero-content p {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-xl);
+  opacity: 0.95;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.cta-button {
+  display: inline-block;
+  background: var(--color-white);
+  color: var(--color-black);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-lg);
+}
+
+.cta-button:hover {
+  background: var(--color-light-gray);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-xl);
+  margin: var(--spacing-2xl) 0;
+}
+
+.feature {
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-accent-light);
+  transition: var(--transition-normal);
+  position: relative;
+}
+
+.feature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-subtle);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.feature:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.feature h3 {
+  font-size: 1.25rem;
+  margin: var(--spacing-lg) 0 var(--spacing-md);
+  color: var(--color-black);
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.feature p {
+  color: var(--color-dark-gray);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-md);
+  display: inline-block;
+}
+
+/* Sección destacada */
+.featured-section {
+  background: var(--gradient-light);
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-xl);
+  margin: var(--spacing-2xl) 0;
+  border: 1px solid var(--color-accent-light);
+}
+
+.featured-section h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  font-family: var(--font-heading);
+  position: relative;
+  padding-bottom: var(--spacing-md);
+}
+
+.featured-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: var(--gradient-subtle);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-xl);
+  }
+
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .feature {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--spacing-lg);
+  }
+
+  .hero-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .hero-content p {
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .cta-button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 12px;
+  }
+}
