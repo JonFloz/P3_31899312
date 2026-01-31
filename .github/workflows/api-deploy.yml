@@ -95,7 +95,7 @@ jobs:
           npm install 2>&1 | tail -10
           echo ""
           echo "Starting Vite build..."
-          npx vite build
+          npm run build
         env:
           VITE_API_URL: https://p3-31899312.onrender.com
           NODE_ENV: production
