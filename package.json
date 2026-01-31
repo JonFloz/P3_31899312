@@ -9,7 +9,10 @@
   "scripts": {
     "test": "NODE_ENV=test jest",
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build:web": "cd web && npm run build",
+    "build": "npm run build:web",
+    "start:prod": "npm run build:web && node server.js"
   },
   "dependencies": {
     "axios": "^1.13.2",

@@ -78,7 +78,7 @@ app.use('/v2', productRoutes);
 app.use('/v2', userRoutesV2);
 
 // Servir archivos estáticos del frontend (para arquitectura monorepo)
-const frontendPath = path.join(__dirname, '../../web/dist');
+const frontendPath = path.join(__dirname, './web/dist');
 app.use(express.static(frontendPath));
 
 // SPA fallback para React Router (usar regex en lugar de '*')
