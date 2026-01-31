@@ -82,32 +82,32 @@ jobs:
           npm list --depth=0
       
       - name: 🔨 Build Frontend
-        working-directory: ./web
         run: |
-          echo "PWD:"
-          pwd
-          echo "Files in working dir:"
+          cd web
+          echo "PWD: $(pwd)"
+          echo "Files in current dir:"
           ls -la
-          echo "Node version:"
-          node --version
-          echo "npm version:"
-          npm --version
-          echo "Checking Vite in node_modules (depth=0):"
+          echo "Node: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "Checking Vite installation:"
           npm list vite --depth=0 || true
-          echo "Starting build..."
-          npm run build
+          echo "Installing dependencies if needed..."
+          npm install 2>&1 | tail -10
+          echo ""
+          echo "Starting Vite build..."
+          npx vite build
         env:
           VITE_API_URL: https://p3-31899312.onrender.com
           NODE_ENV: production
       
       - name: ✅ Verificar build
-        working-directory: ./web
         run: |
-          if [ -d "dist" ]; then
-            echo "✅ Build directory exists"
-            du -sh dist
+          if [ -d "web/dist" ]; then
+            echo "✅ Build directory exists at web/dist"
+            du -sh web/dist
+            ls -la web/dist/
           else
-            echo "❌ Build directory NOT found!"
+            echo "❌ Build directory NOT found at web/dist!"
             exit 1
           fi
       
