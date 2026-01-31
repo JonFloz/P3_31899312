@@ -110,7 +110,7 @@ jobs:
         run: |
           echo "Enviando request de deploy a Render..."
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "https://api.render.com/deploy/srv-${{ srv-d3p6igbuibrs73eqo4k0 }}" \
+            "https://api.render.com/deploy/srv-d3p6igbuibrs73eqo4k0 \
             -H "Authorization: Bearer ${{ secrets.RENDER }}" \
             -H "Content-Type: application/json")
           
