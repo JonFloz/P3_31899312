@@ -60,7 +60,7 @@ jobs:
         with:
           node-version: '20.15.1'
           cache: 'npm'
-          cache-dependency-path: 'web/package-lock.json'
+          cache-dependency-path: '**/package-lock.json'
       
       - name: 📥 Instalar dependencias Frontend
         working-directory: ./web
