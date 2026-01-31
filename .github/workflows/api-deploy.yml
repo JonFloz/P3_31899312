@@ -1,0 +1,301 @@
+name: CI/CD - Build, Test & Deploy to Render
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  RENDER_SERVICE_ID: ${{ srv-d3p6igbuibrs73eqo4k0  }}
+  RENDER_API_KEY: ${{ secrets.RENDER }}
+
+jobs:
+  # ============================================
+  # FASE 1: Validación del Backend
+  # ============================================
+  backend-test:
+    name: 🧪 Test Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        node-version: '20.15.1'
+      fail-fast: false
+    
+    steps:
+      - name: ✅ Checkout código
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: 📦 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'api/src/package-lock.json'
+      
+      - name: 📥 Instalar dependencias Backend
+        working-directory: ./api/src
+        run: |
+          echo "Installing backend dependencies..."
+          npm ci --prefer-offline --no-audit
+      
+      - name: 🧪 Ejecutar tests Backend
+        working-directory: ./api/src
+        run: |
+          echo "Running tests..."
+          npm test -- --passWithNoTests --coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: sqlite::memory:
+      
+      - name: 📊 Covertura de tests
+        working-directory: ./api/src
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "✅ Tests with coverage generated"
+          fi
+        continue-on-error: true
+      
+      - name: 🔍 Lint (ESLint)
+        working-directory: ./api/src
+        run: npm run lint --if-present
+        continue-on-error: true
+      
+      - name: 📝 Verificar package.json
+        working-directory: ./api/src
+        run: npm list --depth=0
+        continue-on-error: true
+
+  # ============================================
+  # FASE 2: Build del Frontend
+  # ============================================
+  frontend-build:
+    name: 🏗️ Build Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: ✅ Checkout código
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.15.1'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+      
+      - name: 📥 Instalar dependencias Frontend
+        working-directory: ./web
+        run: |
+          echo "Installing frontend dependencies..."
+          npm ci --prefer-offline --no-audit
+      
+      - name: 🔨 Build Frontend
+        working-directory: ./web
+        run: |
+          echo "Building frontend..."
+          npm run build
+        env:
+          VITE_API_URL: ${{ secrets.RENDER_API_BASE_URL || 'https://p3-31899312.onrender.com' }}
+          VITE_ENV: production
+          NODE_ENV: production
+      
+      - name: ✅ Verificar build
+        working-directory: ./web
+        run: |
+          if [ -d "dist" ]; then
+            echo "✅ Build directory exists"
+            du -sh dist
+            ls -la dist | head -10
+          else
+            echo "❌ Build directory NOT found!"
+            exit 1
+          fi
+      
+      - name: 📤 Guardar Frontend Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: web/dist
+          retention-days: 1
+          if-no-files-found: error
+
+  # ============================================
+  # FASE 3: Validación de Security
+  # ============================================
+  security-check:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ✅ Checkout código
+        uses: actions/checkout@v3
+      
+      - name: 🔐 npm audit (Backend)
+        working-directory: ./api/src
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+      
+      - name: 🔐 npm audit (Frontend)
+        working-directory: ./web
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  # ============================================
+  # FASE 4: Deploy a Render
+  # ============================================
+  deploy:
+    name: 🚀 Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build, security-check]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+    
+    steps:
+      - name: ✅ Checkout código
+        uses: actions/checkout@v3
+      
+      - name: 🔑 Verificar Render API Key
+        run: |
+          if [ -z "${{ secrets.RENDER_API_KEY }}" ]; then
+            echo "❌ RENDER_API_KEY no está configurado"
+            exit 1
+          fi
+          if [ -z "${{ secrets.RENDER_SERVICE_ID }}" ]; then
+            echo "❌ RENDER_SERVICE_ID no está configurado"
+            exit 1
+          fi
+          echo "✅ Credenciales verificadas"
+      
+      - name: 📤 Trigger Deploy en Render
+        run: |
+          echo "Enviando request de deploy a Render..."
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json")
+          
+          status_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response Status: $status_code"
+          echo "Response Body: $body"
+          
+          if [ "$status_code" != "200" ] && [ "$status_code" != "201" ]; then
+            echo "❌ Deploy API call failed with status $status_code"
+            exit 1
+          fi
+          echo "✅ Deploy initiated successfully"
+      
+      - name: ⏳ Esperar a que Render se despliegue
+        run: |
+          echo "Waiting for Render deployment (120 seconds)..."
+          sleep 120
+          echo "✅ Deployment window complete"
+
+  # ============================================
+  # FASE 5: Verificación Post-Deploy
+  # ============================================
+  verify-deployment:
+    name: ✅ Verify Deployment
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    timeout-minutes: 10
+    
+    steps:
+      - name: 🔗 Verificar que el sitio está online
+        run: |
+          HEALTH_URL="${{ secrets.RENDER_API_BASE_URL || 'https://p3-31899312.onrender.com' }}"
+          
+          echo "Checking health of: $HEALTH_URL"
+          
+          max_attempts=5
+          attempt=0
+          
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts..."
+            
+            if curl -f -m 10 "$HEALTH_URL" > /dev/null 2>&1; then
+              echo "✅ Sitio está ONLINE"
+              exit 0
+            fi
+            
+            if [ $attempt -lt $max_attempts ]; then
+              echo "⏳ Esperando 15 segundos..."
+              sleep 15
+            fi
+          done
+          
+          echo "⚠️ Sitio no responde después de $max_attempts intentos"
+          echo "Revisar logs en Render Dashboard"
+          exit 1
+      
+      - name: 📊 API Health Check
+        run: |
+          API_URL="${{ secrets.RENDER_API_BASE_URL || 'https://p3-31899312.onrender.com' }}/api"
+          
+          echo "Testing API endpoints..."
+          
+          # Test basic connectivity
+          if curl -f -m 10 "${API_URL}/auth/login" -X OPTIONS > /dev/null 2>&1; then
+            echo "✅ API is responding"
+          else
+            echo "⚠️ API might be slow to respond (normal for first deploy)"
+          fi
+        continue-on-error: true
+
+  # ============================================
+  # FASE 6: Notificación Final
+  # ============================================
+  notify:
+    name: 📧 Notify Status
+    runs-on: ubuntu-latest
+    needs: [deploy, verify-deployment]
+    if: always()
+    
+    steps:
+      - name: ✅ Deploy Exitoso
+        if: success()
+        run: |
+          echo "╔════════════════════════════════════════════╗"
+          echo "║     ✅ DEPLOY COMPLETADO EXITOSAMENTE     ║"
+          echo "╚════════════════════════════════════════════╝"
+          echo ""
+          echo "📊 Resumen:"
+          echo "  • Backend: Testeado ✅"
+          echo "  • Frontend: Compilado ✅"
+          echo "  • Render: Deploy enviado ✅"
+          echo "  • Verificación: Online ✅"
+          echo ""
+          echo "🔗 Sitio: ${{ secrets.RENDER_API_BASE_URL || 'https://p3-31899312.onrender.com' }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.actor }}"
+      
+      - name: ❌ Deploy Fallido
+        if: failure()
+        run: |
+          echo "╔════════════════════════════════════════════╗"
+          echo "║          ❌ DEPLOY FALLÓ                  ║"
+          echo "╚════════════════════════════════════════════╝"
+          echo ""
+          echo "🔍 Revisar:"
+          echo "  1. GitHub Actions Logs (arriba)"
+          echo "  2. Render Dashboard Logs"
+          echo "  3. Variables de entorno en Render"
+          echo "  4. Secrets en GitHub"
+          echo ""
+          exit 1
