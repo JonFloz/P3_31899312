@@ -25,7 +25,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.15.1'
-          cache: 'npm'
       
       - name: 📥 Instalar dependencias Backend
         run: npm ci --legacy-peer-deps
@@ -59,7 +58,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.15.1'
-          cache: 'npm'
       
       - name: 📥 Instalar dependencias Frontend
         working-directory: ./web
@@ -67,8 +65,13 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Files in directory:"
           ls -la
+          echo "Verifying package files:"
+          test -f package.json && echo "✓ package.json found" || echo "✗ package.json NOT found"
+          test -f package-lock.json && echo "✓ package-lock.json found" || echo "✗ package-lock.json NOT found"
+          echo ""
           echo "Installing dependencies..."
-          npm install 2>&1 | tail -20
+          npm install
+          echo ""
           echo "Installation complete. Checking installed packages:"
           npm list --depth=0
       
