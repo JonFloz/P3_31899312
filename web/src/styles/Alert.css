@@ -1,0 +1,82 @@
+/* ===================================
+   ALERT - NOTIFICACIONES MINIMALISTA
+   =================================== */
+
+.alert {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 5px solid;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.5;
+  box-shadow: var(--shadow-md);
+  gap: var(--spacing-lg);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-info {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-left-color: #3B82F6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.alert-success {
+  background: #DCFCE7;
+  color: #15803D;
+  border-left-color: #16A34A;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+.alert-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-left-color: #DC2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.alert-warning {
+  background: #FEF3C7;
+  color: #92400E;
+  border-left-color: #F59E0B;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: inherit;
+  opacity: 0.6;
+  transition: var(--transition-smooth);
+  padding: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-md);
+}
+
+.alert-close:hover {
+  opacity: 1;
+  transform: scale(1.15);
+  background: rgba(0, 0, 0, 0.08);
+}
