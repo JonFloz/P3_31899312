@@ -49,6 +49,10 @@ module.exports = new EntitySchema({
       type: String,
       nullable: true,
     },
+    image: {
+      type: String,
+      nullable: true,
+    },
     slug: {
       type: String,
       nullable: false,

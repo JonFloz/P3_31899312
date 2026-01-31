@@ -354,7 +354,7 @@ class ProductQueryBuilder {
    */
   async build(filters = {}) {
     this.start();
-
+ 
     // Aplicar filtros en orden
     this.filterByCategory(filters.category);
     this.filterByTags(filters.tags);

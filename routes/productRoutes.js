@@ -1,7 +1,8 @@
 const express = require('express');
 const authenticateJWT = require('../middlewares/auth');
-const { getAll: getAllCategories, create: createCategory, update: updateCategory, delete: deleteCategory } = require('../controllers/Category');
-const { getAll: getAllTags, create: createTag, update: updateTag, delete: deleteTag } = require('../controllers/Tag');
+const upload = require('../config/multerConfig');
+const { getAll: getAllCategories, getById: getCategoryById, create: createCategory, update: updateCategory, delete: deleteCategory } = require('../controllers/Category');
+const { getAll: getAllTags, getById: getTagById, create: createTag, update: updateTag, delete: deleteTag } = require('../controllers/Tag');
 const { list: listProducts, publicView, getById, create, update, delete: deleteProduct } = require('../controllers/Product');
 
 const router = express.Router();
@@ -492,6 +493,7 @@ router.get('/mangas', listProducts);       // Public mangas listing (filters, pa
 
 // Rutas para categories
 router.get('/categories', authenticateJWT, getAllCategories);      // Obtener todas las categorías
+router.get('/categories/:id', authenticateJWT, getCategoryById);      // Obtener una categoría por ID
 router.post('/categories', authenticateJWT, require('../middlewares/validators').categoryCreate, createCategory);      // Crear una nueva categoría
 router.put('/categories/:id', authenticateJWT, require('../middlewares/validators').categoryUpdate, updateCategory);   // Actualizar una categoría
 router.delete('/categories/:id', authenticateJWT, deleteCategory);// Eliminar una categoría
@@ -499,6 +501,53 @@ router.delete('/categories/:id', authenticateJWT, deleteCategory);// Eliminar un
 /**
  * @swagger
  * /v2/categories/{id}:
+ *   get:
+ *     summary: Obtener una categoría por ID
+ *     tags: ["Admin - Categories"]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la categoría
+ *     responses:
+ *       200:
+ *         description: Categoría encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Category'
+ *             example:
+ *               status: success
+ *               data:
+ *                 id: 1
+ *                 name: "Shonen"
+ *                 description: "Categoría para mangas shounen"
+ *                 createdAt: "2025-12-04T21:48:15.000Z"
+ *                 updatedAt: "2025-12-04T21:48:15.000Z"
+ *       401:
+ *         description: No autorizado
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Invalid token"
+ *       404:
+ *         description: Categoría no encontrada
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Category not found"
  *   put:
  *     summary: Actualizar una categoría por ID
  *     tags: ["Admin - Categories"]
@@ -614,13 +663,65 @@ router.delete('/categories/:id', authenticateJWT, deleteCategory);// Eliminar un
  */
 
 // Rutas para tags
-router.get('/tags', authenticateJWT, getAllTags);                 // Obtener todas las etiquetas
+router.get('/tags', authenticateJWT, getAllTags);                 // Obtener todas las etiquetas (protegido)
+router.get('/tags/:id', authenticateJWT, getTagById);                 // Obtener una etiqueta por ID (protegido)
 router.post('/tags', authenticateJWT, require('../middlewares/validators').tagCreate, createTag);                 // Crear una nueva etiqueta
 router.put('/tags/:id', authenticateJWT, require('../middlewares/validators').tagUpdate, updateTag);              // Actualizar una etiqueta
 router.delete('/tags/:id', authenticateJWT, deleteTag);           // Eliminar una etiqueta
 
+// Rutas públicas para obtener categorías y tags (sin autenticación)
+router.get('/public/categories', getAllCategories);               // Obtener todas las categorías (público)
+router.get('/public/tags', getAllTags);                           // Obtener todas las etiquetas (público)
+
 /**
  * @swagger
+ * /v2/tags/{id}:
+ *   get:
+ *     summary: Obtener una etiqueta por ID
+ *     tags: ["Admin - Tags"]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la etiqueta
+ *     responses:
+ *       200:
+ *         description: Etiqueta encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Tag'
+ *             example:
+ *               status: success
+ *               data:
+ *                 id: 1
+ *                 name: "Acción"
+ *                 createdAt: "2025-12-04T21:48:15.000Z"
+ *                 updatedAt: "2025-12-04T21:48:15.000Z"
+ *       401:
+ *         description: No autorizado
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Invalid token"
+ *       404:
+ *         description: Etiqueta no encontrada
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: fail
+ *               message: "Tag not found"
  * /v2/tags:
  *   get:
  *     summary: Obtener todas las etiquetas
@@ -1043,9 +1144,9 @@ router.delete('/tags/:id', authenticateJWT, deleteTag);           // Eliminar un
  *               message: "Internal Server Error"
  */
 // Rutas para mangas (protegidas)
-router.post('/mangas', authenticateJWT, require('../middlewares/validators').mangaCreate, create);                // Crear un nuevo manga
+router.post('/mangas', authenticateJWT, upload.single('image'), require('../middlewares/validators').mangaCreate, create);                // Crear un nuevo manga
 router.get('/mangas/:id', authenticateJWT, getById);            // Obtener un manga por ID (protegido)
-router.put('/mangas/:id', authenticateJWT, require('../middlewares/validators').mangaUpdate, update);             // Actualizar un manga
+router.put('/mangas/:id', authenticateJWT, upload.single('image'), require('../middlewares/validators').mangaUpdate, update);             // Actualizar un manga
 router.delete('/mangas/:id', authenticateJWT, deleteProduct);   // Eliminar un manga
 
 // ==================== ÓRDENES (CHECKOUT) ====================

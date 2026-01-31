@@ -131,7 +131,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
 
         expect(loginResponse.status).toBe(200);
         expect(loginResponse.body.status).toBe('success');
-        expect(loginResponse.body).toHaveProperty('token');
+        expect(loginResponse.body.data).toHaveProperty('token');
     });
 
     it('POST /auth/login, Se espera un status 401 && fail, Credenciales invalidas: Email o contrasena no coinciden', async () => {
@@ -836,8 +836,10 @@ describe('Pruebas de Órdenes - Transacción Completa (Éxito)', () => {
     const product2After = await productRepo.findOne({ where: { id: productId2 } });
     expect(product2After.stock).toBe(5 - 1); // Stock seed original es 5
 
-    // Validamos totalAmount es correcto
-    const expectedTotal = (order.items[0].unitPrice * 2) + (order.items[1].unitPrice * 1);
+    // Validamos totalAmount es correcto (incluye 6% tax)
+    const subtotal = (order.items[0].unitPrice * 2) + (order.items[1].unitPrice * 1);
+    const expectedTax = subtotal * 0.06;
+    const expectedTotal = subtotal + expectedTax;
     expect(order.totalAmount).toBeCloseTo(expectedTotal, 2);
   });
 
