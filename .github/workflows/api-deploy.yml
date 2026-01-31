@@ -24,7 +24,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22.12.1'
+          node-version: '22.22.0'
       
       - name: 📥 Instalar dependencias Backend
         run: npm ci --legacy-peer-deps
@@ -57,7 +57,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22.12.1'
+          node-version: '22.22.0'
       
       - name: 📥 Instalar dependencias Frontend
         working-directory: ./web
