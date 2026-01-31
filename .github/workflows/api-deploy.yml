@@ -100,7 +100,7 @@ jobs:
           echo "Starting Vite build..."
           npm run build
         env:
-          VITE_API_URL: https://p3-31899312.onrender.com
+          VITE_API_URL: https://p3-31899312.onrender.com/
           NODE_ENV: production
       
       - name: ✅ Verificar build
@@ -172,7 +172,7 @@ jobs:
     steps:
       - name: 🔗 Verificar que el sitio está online
         run: |
-          HEALTH_URL="https://p3-31899312.onrender.com"
+          HEALTH_URL="https://p3-31899312.onrender.com/"
           
           echo "Checking health of: $HEALTH_URL"
           
@@ -220,7 +220,7 @@ jobs:
           echo "  • Render: Deploy enviado ✅"
           echo "  • Verificación: Online ✅"
           echo ""
-          echo "🔗 Sitio: https://p3-31899312.onrender.com"
+          echo "🔗 Sitio: https://p3-31899312.onrender.com/"
           echo "📝 Commit: ${{ github.sha }}"
           echo "👤 Author: ${{ github.actor }}"
       
