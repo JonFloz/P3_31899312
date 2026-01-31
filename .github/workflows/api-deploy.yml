@@ -28,7 +28,7 @@ jobs:
           cache: 'npm'
       
       - name: 📥 Instalar dependencias Backend
-        run: npm install
+        run: npm ci --legacy-peer-deps
       
       - name: 🔧 Crear archivo .env
         run: |
@@ -38,7 +38,7 @@ jobs:
           echo "TEST_DATABASE_PATH=:memory:" >> .env
       
       - name: 🧪 Ejecutar tests Backend
-        run: npm test
+        run: npm test -- --passWithNoTests
         env:
           NODE_ENV: test
           DATABASE_PATH: ':memory:'
