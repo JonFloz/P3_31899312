@@ -64,11 +64,19 @@ jobs:
       
       - name: 📥 Instalar dependencias Frontend
         working-directory: ./web
-        run: npm install
+        run: npm ci --legacy-peer-deps
       
       - name: 🔨 Build Frontend
         working-directory: ./web
-        run: npm run build
+        run: |
+          echo "Node version:"
+          node --version
+          echo "npm version:"
+          npm --version
+          echo "Vite version:"
+          npm list vite
+          echo "Starting build..."
+          npm run build
         env:
           VITE_API_URL: https://p3-31899312.onrender.com
           NODE_ENV: production
@@ -85,7 +93,7 @@ jobs:
           fi
       
       - name: 📤 Guardar Frontend Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: web/dist
