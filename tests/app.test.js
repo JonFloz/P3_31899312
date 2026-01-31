@@ -84,7 +84,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     
     it('POST /auth/register, se espera status 201 %% success, return: id, nombre, email.', async () => {
         const registerResponse = await request(app)
-            .post('/auth/register')
+            .post('/api/auth/register')
             .send({
                 nombre: 'Alex',
                 email: 'alex@hotmail.com',
@@ -101,7 +101,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     it('POST /auth/register, se espera un error 409, Email ya se encuentra registrado en la base de dato. ', async () => {
     // Crear usuario previo
         await request(app)
-            .post('/auth/register')
+            .post('/api/auth/register')
             .send({
                 nombre: 'Alex',
                 email: 'alex2@outlook.com',
@@ -110,7 +110,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
 
     // Intentar registrar correo duplicado
         const registerResponse = await request(app)
-            .post('/auth/register')
+            .post('/api/auth/register')
             .send({
                 nombre: 'Alex',
                 email: 'alex2@outlook.com', // mismo email que antes
@@ -126,7 +126,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     // Usar usuario seed creado en beforeAll para login
         const seeded = global.__SEEDED_USERS[0];
         const loginResponse = await request(app)
-            .post('/auth/login')
+            .post('/api/auth/login')
             .send({ email: seeded.email, contrasena: seeded.plain });
 
         expect(loginResponse.status).toBe(200);
@@ -137,7 +137,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     it('POST /auth/login, Se espera un status 401 && fail, Credenciales invalidas: Email o contrasena no coinciden', async () => {
         const seeded = global.__SEEDED_USERS[0];
         const loginResponse = await request(app)
-            .post('/auth/login')
+            .post('/api/auth/login')
             .send({ email: seeded.email, contrasena: 'wrong-password' });
 
         expect(loginResponse.status).toBe(401);
@@ -147,7 +147,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     it('POST /auth/login, Se espera un status 400 && fail, Credenciales invalidas: No ingreso Email o contrasena', async () => {
         const seeded = global.__SEEDED_USERS[1];
         const loginResponse = await request(app)
-            .post('/auth/login')
+            .post('/api/auth/login')
             .send({ email: seeded.email, contrasena: '' });
 
         expect(loginResponse.status).toBe(400);
@@ -156,7 +156,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
 
     it('Get /users, se espera status 401 && fail, al no enviar token de autenticacion', async () => {
         const getAllUsersResponse = await request(app)
-            .get('/users');
+            .get('/api/users');
 
         expect(getAllUsersResponse.status).toBe(401);
         expect(getAllUsersResponse.body.status).toBe('fail');
@@ -167,7 +167,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
         token = 'abcdersdASDsfewaf';
 
         const getAllUsersResponse = await request(app)
-            .get('/users')
+            .get('/api/users')
             .set('Authorization', `Bearer ${token}invalid`);
 
         expect(getAllUsersResponse.status).toBe(403);
@@ -177,7 +177,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     it('Get /users, se espera status 200 && success, con validacion de token, se recuperan todos los usuarios', async () => {
         const token = global.__SEEDED_TOKENS[0];
         const getAllUsersResponse = await request(app)
-            .get('/users')
+            .get('/api/users')
             .set('Authorization', `Bearer ${token}`);
 
         expect(getAllUsersResponse.status).toBe(200);
@@ -186,13 +186,13 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     });
 
 
-    it('Get /users/:id, se espera status 200 && success, con validacion de token, se recupera un usuario por ID', async () => {
+    it('Get /api/users/:id, se espera status 200 && success, con validacion de token, se recupera un usuario por ID', async () => {
         const seeded = global.__SEEDED_USERS[2];
         const token = global.__SEEDED_TOKENS[2];
         const userId = seeded.id;
 
         const getUserByIdResponse = await request(app)
-            .get(`/users/${userId}`)
+            .get(`/api/users/${userId}`)
             .set('Authorization', `Bearer ${token}`);
 
         expect(getUserByIdResponse.status).toBe(200);
@@ -203,11 +203,11 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     });
 
 
-    it('Get /users/:id, se espera status 404 && fail, al no encontrar el usuario por ID', async () => {
+    it('Get /api/users/:id, se espera status 404 && fail, al no encontrar el usuario por ID', async () => {
     // Usar token seed y un ID inexistente
         const token = global.__SEEDED_TOKENS[3];
         const getUserByIdResponse = await request(app)
-            .get(`/users/999999`)
+            .get(`/api/users/999999`)
             .set('Authorization', `Bearer ${token}`);
 
         expect(getUserByIdResponse.status).toBe(404);
@@ -215,11 +215,11 @@ describe('Pruebas de Endpoints de Autenticación', () => {
         expect(getUserByIdResponse.body.message).toBe('Usuario no encontrado');
     });
 
-    it('Get /users/:id, se espera status 400 && fail, al no enviar un ID válido', async () => {
+    it('Get /api/users/:id, se espera status 400 && fail, al no enviar un ID válido', async () => {
         const invalidUserId = 'abc123';
         const token = global.__SEEDED_TOKENS[4];
         const getUserByIdResponse = await request(app)
-            .get(`/users/${invalidUserId}`)
+            .get(`/api/users/${invalidUserId}`)
             .set('Authorization', `Bearer ${token}`);
 
         expect(getUserByIdResponse.status).toBe(400);
@@ -230,7 +230,7 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     it('POST /users, se espera status 200 && success, Se crea un usuario con validacion de token', async () => {
         const token = global.__SEEDED_TOKENS[5];
         const createUserResponse = await request(app)
-            .post('/users')
+            .post('/api/users')
             .set('Authorization', `Bearer ${token}`)
             .send({ nombre: 'Maria', email: 'Maria@gmail.com', contrasena: 'Password123' });
 
@@ -243,29 +243,29 @@ describe('Pruebas de Endpoints de Autenticación', () => {
 
     it('POST /users, se espera status 409 && fail, Correo en uso', async () => {
         const token = global.__SEEDED_TOKENS[5];
-        await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: 'Maria@gmail.com', contrasena: 'Password123' });
-        const createUserResponse = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: 'Maria@gmail.com', contrasena: 'Password123' });
+        await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: 'Maria@gmail.com', contrasena: 'Password123' });
+        const createUserResponse = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: 'Maria@gmail.com', contrasena: 'Password123' });
         expect(createUserResponse.status).toBe(409);
         expect(createUserResponse.body.status).toBe('fail');
     });
 
     it('POST /users, se espera status 400 && fail, No se ingreso algun dato, o el Email no tiene direccion correcta', async () => {
         const token = global.__SEEDED_TOKENS[6];
-        const createUserResponse = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: '', email: 'Maria@gmail.com', contrasena: 'Password123' });
+        const createUserResponse = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: '', email: 'Maria@gmail.com', contrasena: 'Password123' });
         expect(createUserResponse.status).toBe(400);
         expect(createUserResponse.body.status).toBe('fail');
     });
 
 
 
-    it('PUT /users/:id, se espera status 200 && success, Se actualiza un usuario con validación de token', async () => {
+    it('PUT /api/users/:id, se espera status 200 && success, Se actualiza un usuario con validación de token', async () => {
         const token = global.__SEEDED_TOKENS[7];
-    // Crear usuario a actualizar mediante /users
-        const createUserResponse = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: `maria${Date.now()}@example.com`, contrasena: 'Password123' });
+    // Crear usuario a actualizar mediante /api/users
+        const createUserResponse = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: `maria${Date.now()}@example.com`, contrasena: 'Password123' });
     const userId = createUserResponse.body.data.usuario.id; // id del usuario creado
 
     // Actualizar datos del usuario
-        const updateUserResponse = await request(app).put(`/users/${userId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria-Updated', email: `maria.updated${Date.now()}@example.com`, contrasena: 'NewPassword123' });
+        const updateUserResponse = await request(app).put(`/api/users/${userId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria-Updated', email: `maria.updated${Date.now()}@example.com`, contrasena: 'NewPassword123' });
 
         expect(updateUserResponse.status).toBe(200);
         expect(updateUserResponse.body.status).toBe('success');
@@ -274,43 +274,43 @@ describe('Pruebas de Endpoints de Autenticación', () => {
     });
 
 
-    it('PUT /users/:id, se espera status 409 && fail, Correo ingresado ya esta en uso', async () => {
+    it('PUT /api/users/:id, se espera status 409 && fail, Correo ingresado ya esta en uso', async () => {
         const token = global.__SEEDED_TOKENS[7];
     // Crear dos usuarios: uno a actualizar y otro para conflicto de email
-        const r1 = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'U1', email: `u1${Date.now()}@example.com`, contrasena: 'Password1' });
-        const r2 = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'U2', email: `u2${Date.now()}@example.com`, contrasena: 'Password2' });
+        const r1 = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'U1', email: `u1${Date.now()}@example.com`, contrasena: 'Password1' });
+        const r2 = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'U2', email: `u2${Date.now()}@example.com`, contrasena: 'Password2' });
         const userId = r1.body.data.usuario.id;
         const conflictEmail = r2.body.data.usuario.email;
-        const updateUserResponse = await request(app).put(`/users/${userId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'X', email: conflictEmail, contrasena: 'NewPassword123' });
+        const updateUserResponse = await request(app).put(`/api/users/${userId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'X', email: conflictEmail, contrasena: 'NewPassword123' });
         expect(updateUserResponse.status).toBe(409);
         expect(updateUserResponse.body.status).toBe('fail');
     });
 
 
-    it('PUT /users/:id, se espera status 404 && fail, al no encontrar el usuario', async () => {
+    it('PUT /api/users/:id, se espera status 404 && fail, al no encontrar el usuario', async () => {
         const token = global.__SEEDED_TOKENS[8];
         const nonExistentUserId = 999999;
-        const updateUserResponse = await request(app).put(`/users/${nonExistentUserId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria-Updated', email: 'maria.updated@gmail.com', contrasena: 'NewPassword123' });
+        const updateUserResponse = await request(app).put(`/api/users/${nonExistentUserId}`).set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria-Updated', email: 'maria.updated@gmail.com', contrasena: 'NewPassword123' });
         expect(updateUserResponse.status).toBe(404);
         expect(updateUserResponse.body.status).toBe('fail');
     });
 
 
         // Prueba: eliminar usuario existente
-    it('DELETE /users/:id, se espera status 200 && success, al eliminar un usuario', async () => {
+    it('DELETE /api/users/:id, se espera status 200 && success, al eliminar un usuario', async () => {
         const token = global.__SEEDED_TOKENS[9];
-        const createUserResponse = await request(app).post('/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: `maria.del${Date.now()}@example.com`, contrasena: 'Password123' });
+        const createUserResponse = await request(app).post('/api/users').set('Authorization', `Bearer ${token}`).send({ nombre: 'Maria', email: `maria.del${Date.now()}@example.com`, contrasena: 'Password123' });
         const userId = createUserResponse.body.data.usuario.id;
-        const deleteUserResponse = await request(app).delete(`/users/${userId}`).set('Authorization', `Bearer ${token}`);
+        const deleteUserResponse = await request(app).delete(`/api/users/${userId}`).set('Authorization', `Bearer ${token}`);
         expect(deleteUserResponse.status).toBe(200);
         expect(deleteUserResponse.body.status).toBe('success');
     });
 
     // Prueba: eliminar usuario inexistente
-    it('DELETE /users/:id, se espera status 404 && fail, al no encontrar el usuario para eliminar', async () => {
+    it('DELETE /api/users/:id, se espera status 404 && fail, al no encontrar el usuario para eliminar', async () => {
         const token = global.__SEEDED_TOKENS[0];
         const nonExistentUserId = 999999;
-        const deleteUserResponse = await request(app).delete(`/users/${nonExistentUserId}`).set('Authorization', `Bearer ${token}`);
+        const deleteUserResponse = await request(app).delete(`/api/users/${nonExistentUserId}`).set('Authorization', `Bearer ${token}`);
         expect(deleteUserResponse.status).toBe(404);
         expect(deleteUserResponse.body.status).toBe('fail');
     });
