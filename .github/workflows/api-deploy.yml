@@ -136,28 +136,16 @@ jobs:
       - name: ✅ Checkout código
         uses: actions/checkout@v3
       
-      - name: 📤 Trigger Deploy en Render
+      - name: Deploy to Render
+        if: success() 
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER }} 
+          RENDER_SERVICE_ID: srv-d3p6igbuibrs73eqo4k0 
         run: |
-          echo "Enviando request de deploy a Render..."
-          response=$(curl -s -w "\n%{http_code}" -X POST \
-            "https://api.render.com/deploy/srv-d3p6igbuibrs73eqo4k0" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json")
-          
-          status_code=$(echo "$response" | tail -1)
-          body=$(echo "$response" | sed '$d')
-          
-          echo "Response Status: $status_code"
-          echo "Response Body: $body"
-          
-          if [ "$status_code" != "200" ] && [ "$status_code" != "201" ]; then
-            echo "❌ Deploy failed with status $status_code"
-            exit 1
-          fi
-          echo "✅ Deploy initiated successfully"
-      
-      - name: ⏳ Esperar a que Render se despliegue
-        run: sleep 120
+          curl -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys
 
   # ============================================
   # FASE 4: Verificación Post-Deploy
