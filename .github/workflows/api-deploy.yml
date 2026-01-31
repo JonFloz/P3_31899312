@@ -60,11 +60,17 @@ jobs:
         with:
           node-version: '20.15.1'
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
       
       - name: 📥 Instalar dependencias Frontend
         working-directory: ./web
-        run: npm ci --legacy-peer-deps
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in directory:"
+          ls -la
+          echo "Installing dependencies..."
+          npm ci --legacy-peer-deps --verbose 2>&1 | head -50
+          echo "Installation complete. Checking installed packages:"
+          npm list --depth=0
       
       - name: 🔨 Build Frontend
         working-directory: ./web
