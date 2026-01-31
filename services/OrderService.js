@@ -158,18 +158,19 @@ class OrderService {
 
   /**
    * Calcula el total y prepara items de la orden
+   * Incluye un impuesto del 6% sobre el subtotal
    * @private
    */
   _calculateOrderTotal(products, items) {
-    let totalAmount = 0;
+    let subtotal = 0;
     const orderItems = [];
 
     items.forEach((item, index) => {
       const product = products[index];
       const unitPrice = product.price;
-      const subtotal = unitPrice * item.quantity;
+      const itemSubtotal = unitPrice * item.quantity;
 
-      totalAmount += subtotal;
+      subtotal += itemSubtotal;
 
       orderItems.push({
         productId: product.id,
@@ -178,7 +179,14 @@ class OrderService {
       });
     });
 
+    // Calcular impuesto (6%)
+    const taxRate = 0.06;
+    const tax = subtotal * taxRate;
+    const totalAmount = subtotal + tax;
+
     return {
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      tax: parseFloat(tax.toFixed(2)),
       totalAmount: parseFloat(totalAmount.toFixed(2)),
       orderItems,
     };

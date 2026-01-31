@@ -32,22 +32,22 @@ const tagUpdate = [
 
 const mangaCreate = [
   body('name').exists().withMessage('name is required').bail().isString().trim().notEmpty(),
-  body('author').exists().withMessage('author is required').bail().isString().trim().notEmpty(),
-  body('tomoNumber').exists().withMessage('tomoNumber is required').bail().isInt({ min: 1 }),
-  body('price').optional().isFloat({ min: 0 }),
-  body('stock').optional().isInt({ min: 0 }),
-  body('categoryId').optional().isInt({ min: 1 }),
+  body('author').optional().isString().trim(),
+  body('tomoNumber').optional().isInt({ min: 1 }).toInt(),
+  body('price').optional().isFloat({ min: 0 }).toFloat(),
+  body('stock').optional().isInt({ min: 0 }).toInt(),
+  body('categoryId').optional().isInt({ min: 1 }).toInt(),
   body('tags').optional().isArray(),
   checkValidation,
 ];
 
 const mangaUpdate = [
   body('name').optional().isString().trim().notEmpty(),
-  body('author').optional().isString().trim().notEmpty(),
-  body('tomoNumber').optional().isInt({ min: 1 }),
-  body('price').optional().isFloat({ min: 0 }),
-  body('stock').optional().isInt({ min: 0 }),
-  body('categoryId').optional().isInt({ min: 1 }),
+  body('author').optional().isString().trim(),
+  body('tomoNumber').optional().isInt({ min: 1 }).toInt(),
+  body('price').optional().isFloat({ min: 0 }).toFloat(),
+  body('stock').optional().isInt({ min: 0 }).toInt(),
+  body('categoryId').optional().isInt({ min: 1 }).toInt(),
   body('tags').optional().isArray(),
   checkValidation,
 ];
