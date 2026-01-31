@@ -28,12 +28,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Servidor de desarrollo o producción'
-      },
-      {
-        url: 'https://p3-31899312.onrender.com',
-        description: 'Servidor en Render'
+        url: process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000',
+        description: 'Servidor dinámico (Render o local)'
       },
     ],
   },
