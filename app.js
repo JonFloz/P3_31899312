@@ -9,6 +9,16 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 
 // Config Swagger
+const getSwaggerUrl = () => {
+  // En producción con Render
+  if (process.env.RENDER_EXTERNAL_URL) {
+    return process.env.RENDER_EXTERNAL_URL;
+  }
+  // En desarrollo local
+  const port = process.env.PORT || 3000;
+  return `http://localhost:${port}`;
+};
+
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -28,8 +38,9 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000',
-        description: 'Servidor dinámico (Render o local)'
+        url: getSwaggerUrl(),
+        description: 'Servidor dinámico (Render o local)',
+        variables: {}
       },
     ],
   },
