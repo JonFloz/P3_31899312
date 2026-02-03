@@ -9,7 +9,7 @@ const router = express.Router()
 
 /**
  * @swagger
- * /auth/register:
+ * /api/auth/register:
  *   post:
  *     summary: Registra un nuevo usuario
  *     description: Crea un nuevo usuario en el sistema.
@@ -101,7 +101,7 @@ router.post('/auth/register', registerUser)
 
 /**
  * @swagger
- * /auth/login:
+ * /api/auth/login:
  *   post:
  *     summary: Inicia sesión con un usuario existente
  *     description: Permite a un usuario iniciar sesión utilizando su email y contraseña.
@@ -183,7 +183,7 @@ router.post('/auth/login', loginUser)
 
 /**
  * @swagger
- * /users:
+ * /api/users:
  *   get:
  *     summary: Obtiene la lista de todos los usuarios
  *     description: Recupera todos los usuarios de la base de datos.
@@ -249,7 +249,7 @@ router.get('/users',authenticateJWT, getAllUsers)
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/users/{id}:
  *   get:
  *     summary: Obtiene un usuario por su ID
  *     description: Recupera los detalles de un usuario específico de la base de datos utilizando su ID.
@@ -334,7 +334,7 @@ router.get('/users/:id',authenticateJWT, getUserById)
 
 /**
  * @swagger
- * /users:
+ * /api/users:
  *   post:
  *     summary: Crea un nuevo usuario
  *     description: Permite la creación de un nuevo usuario en el sistema, requiere autenticación.
@@ -434,7 +434,7 @@ router.post('/users',authenticateJWT, createUser)
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/users/{id}:
  *   put:
  *     summary: Actualizar información de usuario
  *     description: Permite actualizar la información de un usuario existente
@@ -561,7 +561,7 @@ router.put('/users/:id',authenticateJWT, updateUser)
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/users/{id}:
  *   delete:
  *     summary: Elimina un usuario por su ID
  *     description: Permite la eliminación de un usuario existente en el sistema.
